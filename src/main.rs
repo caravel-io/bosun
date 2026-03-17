@@ -1,7 +1,7 @@
 use anyhow::Result;
-use bosun;
+use fact_rs;
 
 fn main() -> Result<()> {
-    bosun::build::run()?;
+    fact_rs::build::run()?;
     Ok(())
 }
