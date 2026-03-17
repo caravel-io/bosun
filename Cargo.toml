@@ -1,0 +1,21 @@
+[package]
+name = "factrs"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "factrs"
+path = "src/main.rs"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+macaddr = { version = "1.0.1", features = ["serde_std"] }
+rayon = "1.11.0"
+
+[dev-dependencies]
+tempfile = "3.23.0"
