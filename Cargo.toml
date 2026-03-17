@@ -11,11 +11,11 @@ path = "src/main.rs"
 path = "src/lib.rs"
 
 [dependencies]
-anyhow.workspace = true
-serde.workspace = true
-serde_json.workspace = true
+anyhow = "1.0.102"
 macaddr = { version = "1.0.1", features = ["serde_std"] }
 rayon = "1.11.0"
+serde = "1.0.228"
+serde_json = "1.0.149"
 
 [dev-dependencies]
-tempfile = "3.23.0"
+tempfile = "3.27.0"
