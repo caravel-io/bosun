@@ -185,3 +185,138 @@ fn get_all_ip_devices_output() -> Result<String> {
     let output = String::from_utf8(output)?;
     Ok(output.trim_end().to_string())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const SAMPLE_IP_OUTPUT: &str = r#"[
+      {
+        "ifindex": 1,
+        "ifname": "lo",
+        "flags": ["LOOPBACK", "UP", "LOWER_UP"],
+        "mtu": 65536,
+        "qdisc": "noqueue",
+        "operstate": "UNKNOWN",
+        "group": "default",
+        "txqlen": 1000,
+        "link_type": "loopback",
+        "address": "00:00:00:00:00:00",
+        "broadcast": "00:00:00:00:00:00",
+        "addr_info": [
+          {"family": "inet", "local": "127.0.0.1", "prefixlen": 8, "scope": "host",
+           "label": "lo", "valid_life_time": 4294967295, "preferred_life_time": 4294967295},
+          {"family": "inet6", "local": "::1", "prefixlen": 128, "scope": "host",
+           "noprefixroute": true, "valid_life_time": 4294967295, "preferred_life_time": 4294967295}
+        ]
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp0s1",
+        "flags": ["BROADCAST", "MULTICAST", "UP", "LOWER_UP"],
+        "mtu": 1500,
+        "qdisc": "fq_codel",
+        "operstate": "UP",
+        "group": "default",
+        "txqlen": 1000,
+        "link_type": "ether",
+        "address": "56:a5:fa:dc:80:45",
+        "broadcast": "ff:ff:ff:ff:ff:ff",
+        "addr_info": [
+          {"family": "inet", "local": "192.168.64.8", "prefixlen": 24, "scope": "global",
+           "label": "enp0s1", "valid_life_time": 3132, "preferred_life_time": 3132},
+          {"family": "inet6", "local": "fd08:b294:739c:b65:54a5:faff:fedc:8045", "prefixlen": 64,
+           "scope": "global", "valid_life_time": 2591980, "preferred_life_time": 604780},
+          {"family": "inet6", "local": "fe80::54a5:faff:fedc:8045", "prefixlen": 64,
+           "scope": "link", "valid_life_time": 4294967295, "preferred_life_time": 4294967295}
+        ]
+      }
+    ]"#;
+
+    #[test]
+    fn test_parse_ip_devices_output() {
+        let devices = parse_ip_devices_output(SAMPLE_IP_OUTPUT).unwrap();
+        assert_eq!(devices.len(), 2);
+
+        let lo = &devices[0];
+        assert_eq!(lo.ifname, "lo");
+        assert_eq!(lo.mtu, 65536);
+        assert_eq!(lo.operstate, "UNKNOWN");
+        assert_eq!(lo.link_type, "loopback");
+        assert_eq!(lo.addr_info.len(), 2);
+
+        let eth = &devices[1];
+        assert_eq!(eth.ifname, "enp0s1");
+        assert_eq!(eth.mtu, 1500);
+        assert_eq!(eth.operstate, "UP");
+        assert_eq!(eth.link_type, "ether");
+        assert_eq!(eth.address, "56:a5:fa:dc:80:45");
+        assert_eq!(eth.addr_info.len(), 3);
+        assert_eq!(eth.addr_info[0].local, "192.168.64.8");
+        assert_eq!(eth.addr_info[0].prefixlen, 24);
+    }
+
+    const SAMPLE_IP_OUTPUT_NO_IPV6: &str = r#"[
+      {
+        "ifindex": 1,
+        "ifname": "lo",
+        "flags": ["LOOPBACK", "UP", "LOWER_UP"],
+        "mtu": 65536,
+        "qdisc": "noqueue",
+        "operstate": "UNKNOWN",
+        "group": "default",
+        "txqlen": 1000,
+        "link_type": "loopback",
+        "address": "00:00:00:00:00:00",
+        "broadcast": "00:00:00:00:00:00",
+        "addr_info": [
+          {"family": "inet", "local": "127.0.0.1", "prefixlen": 8, "scope": "host",
+           "label": "lo", "valid_life_time": 4294967295, "preferred_life_time": 4294967295}
+        ]
+      },
+      {
+        "ifindex": 2,
+        "ifname": "enp0s1",
+        "flags": ["BROADCAST", "MULTICAST", "UP", "LOWER_UP"],
+        "mtu": 1500,
+        "qdisc": "fq_codel",
+        "operstate": "UP",
+        "group": "default",
+        "txqlen": 1000,
+        "link_type": "ether",
+        "address": "56:a5:fa:dc:80:45",
+        "broadcast": "ff:ff:ff:ff:ff:ff",
+        "addr_info": [
+          {"family": "inet", "local": "192.168.64.8", "prefixlen": 24, "scope": "global",
+           "label": "enp0s1", "valid_life_time": 3132, "preferred_life_time": 3132}
+        ]
+      }
+    ]"#;
+
+    #[test]
+    fn test_parse_ip_devices_output_no_ipv6() {
+        let devices = parse_ip_devices_output(SAMPLE_IP_OUTPUT_NO_IPV6).unwrap();
+        assert_eq!(devices.len(), 2);
+
+        let lo = &devices[0];
+        assert_eq!(lo.addr_info.len(), 1);
+        assert_eq!(lo.addr_info[0].family, "inet");
+
+        let eth = &devices[1];
+        assert_eq!(eth.addr_info.len(), 1);
+        assert_eq!(eth.addr_info[0].family, "inet");
+        assert_eq!(eth.addr_info[0].local, "192.168.64.8");
+    }
+
+    #[test]
+    fn test_build_fqdn_with_domain() {
+        let fqdn = build_fqdn("web01", &Some("example.com".to_string()));
+        assert_eq!(fqdn, Some("web01.example.com".to_string()));
+    }
+
+    #[test]
+    fn test_build_fqdn_without_domain() {
+        let fqdn = build_fqdn("web01", &None);
+        assert_eq!(fqdn, None);
+    }
+}
