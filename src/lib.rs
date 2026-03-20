@@ -2,11 +2,10 @@ pub mod components;
 
 pub mod filesystem;
 
-use crate::components::{cpu, kernel, memory, mount, network};
+use crate::components::{cpu, kernel, memory, mount, network, os};
 use anyhow::Result;
 use rayon::prelude::*;
 use serde_json::{Map, Value};
-use std::sync::Arc;
 
 pub trait Collector: Send + Sync {
     fn name(&self) -> &'static str;
@@ -14,16 +13,15 @@ pub trait Collector: Send + Sync {
 }
 
 pub fn run() -> Result<()> {
-    let debug = true;
-
     // Register all the components here. Each component
     // implements the Component trait
-    let components: Vec<Arc<dyn Collector>> = vec![
-        Arc::new(kernel::KernelComponent::new()),
-        Arc::new(cpu::CPUComponent::new()),
-        Arc::new(memory::MemoryComponent::new()),
-        Arc::new(mount::MountComponent::new()),
-        Arc::new(network::NetworkComponent::new()),
+    let components: Vec<Box<dyn Collector>> = vec![
+        Box::new(kernel::KernelComponent::new()),
+        Box::new(cpu::CPUComponent::new()),
+        Box::new(memory::MemoryComponent::new()),
+        Box::new(os::OSComponent::new()),
+        Box::new(mount::MountComponent::new()),
+        Box::new(network::NetworkComponent::new()),
     ];
 
     // Build all the components in parallel into pairs of information
@@ -34,9 +32,7 @@ pub fn run() -> Result<()> {
             match c.collect() {
                 Ok(v) => Some((name, v)),
                 Err(e) => {
-                    if debug {
-                        eprintln!("[{}] {:#}", name, e);
-                    }
+                    tracing::warn!(component = %name, error = ?e, "collector failed");
                     None
                 }
             }

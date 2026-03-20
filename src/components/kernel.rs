@@ -28,14 +28,14 @@ impl KernelComponent {
     }
 
     #[cfg(test)]
-    fn with_root(fsroot: PathBuf) -> Self {
+    pub fn with_root(fsroot: PathBuf) -> Self {
         Self { fsroot: fsroot }
     }
 }
 
 impl Collector for KernelComponent {
     fn name(&self) -> &'static str {
-        return "kernel";
+        "kernel"
     }
 
     fn collect(&self) -> Result<serde_json::Value> {

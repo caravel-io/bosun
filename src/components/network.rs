@@ -94,7 +94,7 @@ impl Collector for NetworkComponent {
 
             for addr_info in &device.addr_info {
                 if addr_info.scope == "link" {
-                    // dunno what this is :)
+                    // let's not care about link-local addresses for now :)
                     continue;
                 }
                 if addr_info.family == "inet" {
@@ -114,7 +114,7 @@ impl Collector for NetworkComponent {
                 primary_ip = ip.clone();
                 primary_ip6 = ip6.clone();
                 primary_mac = Some(device.address.clone());
-                primary_mtu = Some(device.mtu.clone());
+                primary_mtu = Some(device.mtu);
                 primary_done = true;
             }
 
@@ -134,15 +134,15 @@ impl Collector for NetworkComponent {
             );
         }
         let facts = NetworkFacts {
-            hostname: hostname,
-            domain: domain,
-            fqdn: fqdn,
+            hostname,
+            domain,
+            fqdn,
             primary: primary_ifname,
             ip: primary_ip,
             ip6: primary_ip6,
             mac: primary_mac,
             mtu: primary_mtu,
-            interfaces: interfaces,
+            interfaces,
         };
         let j = to_value(facts).context("serializing to json value")?;
         Ok(j)
@@ -150,7 +150,7 @@ impl Collector for NetworkComponent {
 }
 
 fn get_hostname() -> Result<String> {
-    Ok(slurp(Path::new("/proc/sys/kernel/hostname")).context("failed to read hostname")?)
+    slurp(Path::new("/proc/sys/kernel/hostname")).context("failed to read hostname")
 }
 
 fn get_domain() -> Result<Option<String>> {

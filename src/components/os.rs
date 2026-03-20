@@ -28,7 +28,7 @@ impl OSComponent {
 
 impl Collector for OSComponent {
     fn name(&self) -> &'static str {
-        return "os";
+        "os"
     }
 
     fn collect(&self) -> Result<serde_json::Value> {
@@ -147,7 +147,10 @@ HOME_URL="https://www.redhat.com/"
 VERSION_CODENAME=ootpa"#,
         );
         let facts = parse_into_facts(input).unwrap();
-        assert_eq!(facts.pretty_name.as_deref(), Some("Red Hat Enterprise Linux 8.10 (Ootpa)"));
+        assert_eq!(
+            facts.pretty_name.as_deref(),
+            Some("Red Hat Enterprise Linux 8.10 (Ootpa)")
+        );
         assert_eq!(facts.name.as_deref(), Some("Red Hat Enterprise Linux"));
         assert_eq!(facts.version_id.as_deref(), Some("8.10"));
         assert_eq!(facts.version.as_deref(), Some("8.10 (Ootpa)"));
@@ -166,7 +169,10 @@ ID="sles"
 HOME_URL="https://www.suse.com/""#,
         );
         let facts = parse_into_facts(input).unwrap();
-        assert_eq!(facts.pretty_name.as_deref(), Some("SUSE Linux Enterprise Server 15 SP5"));
+        assert_eq!(
+            facts.pretty_name.as_deref(),
+            Some("SUSE Linux Enterprise Server 15 SP5")
+        );
         assert_eq!(facts.name.as_deref(), Some("SLES"));
         assert_eq!(facts.version_id.as_deref(), Some("15.5"));
         assert_eq!(facts.version.as_deref(), Some("15-SP5"));

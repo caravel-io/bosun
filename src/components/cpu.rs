@@ -30,7 +30,7 @@ impl CPUComponent {
 
 impl Collector for CPUComponent {
     fn name(&self) -> &'static str {
-        return "cpu";
+        "cpu"
     }
 
     fn collect(&self) -> Result<serde_json::Value> {
